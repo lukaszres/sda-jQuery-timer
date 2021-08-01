@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timer</title>
+    <script src="js/jquery-3.6.0.js"></script>
+    <script src="js/time-service.js"></script>
+</head>
+<body>
+<div id="timeClock" onclick="onClockClick()" style="cursor: pointer"></div>
+<button id="pauseButton" onclick="onPauseButtonClick()">Start</button>
+<button id="resetButton" onclick="resetTime()">Reset</button>
+<form id="timeForm" style="display: none; width: fit-content">
+    <fieldset id="timeFieldSet" style="box-shadow: 5px 5px 10px;">
+        <div style="display: flex; justify-content: space-between; background-color: #d3d2d2; padding: 5px">
+            <span>Ustaw czas</span><span style="cursor: pointer" onclick="$('#timeForm').toggle('slow')">x</span>
+        </div>
+        <div style="margin-right: 25px">
+            <label>Minutes: <input id="minutes" type="number" min="0" max="59"></label>
+            <label>Seconds: <input id="seconds" type="number" min="0" max="59"></label><br />
+            <div style="display: flex; justify-content: center; padding: 25px">
+                <button id="setTimeButton" type="button" onclick="setTime()">Set Time</button>
+            </div>
+        </div>
+    </fieldset>
+</form>
+
+<script>
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    let array = ['jeden', 'dwa', 'trzy'];
+    shuffleArray(array);
+    console.log(array);
+
+
+
+
+    const BTN_START = "Start";
+    const BTN_PAUSE = "Pause";
+
+    let isPaused = true;
+    let timeService = new TimeService();
+    let clockService = new ClockService();
+    let intervalId;
+
+    clockService.setClock(timeService.time);
+
+    function myTimer() {
+        if(!timeService.time.isEnd()) {
+            timeService.decreaseTime();
+            clockService.setClock(timeService.time);
+        } else {
+            clearInterval(intervalId);
+            isPaused = true;
+            setPauseButton(BTN_START);
+            playSound();
+            setFormVisibility();
+        }
+    }
+
+    function onPauseButtonClick(){
+        isPaused = !isPaused;
+        if(isPaused){
+            setPauseButton(BTN_START);
+            clearInterval(intervalId);
+        } else {
+            setPauseButton(BTN_PAUSE);
+            intervalId = setInterval(myTimer, 1000);
+        }
+        setFormVisibility();
+    }
+
+    function setPauseButton(label) {
+        $("#pauseButton").html(label);
+    }
+
+    function setFormVisibility() {
+        let $timeFieldSet = $("#timeFieldSet");
+        let disabled = 'disabled';
+        if (isPaused && $timeFieldSet.attr(disabled)) {
+            $timeFieldSet.prop(disabled, false);
+        }
+        if (!isPaused && !$timeFieldSet.attr(disabled)) {
+            $timeFieldSet.prop(disabled, true);
+        }
+    }
+
+    function setTime() {
+        let seconds = $("#seconds").val();
+        let minutes = $("#minutes").val();
+        timeService.setTime(minutes, seconds);
+        clockService.setClock(timeService.time);
+        $("#timeForm").toggle("slow");
+    }
+
+    function resetTime(){
+        timeService.setDefaultTime();
+        clockService.setClock(timeService.time);
+    }
+
+    function onClockClick(){
+        setFormValues();
+        $("#timeForm").toggle("slow");
+    }
+
+    function playSound(){
+        let audio = new Audio("audio/TF013.WAV");
+        audio.play();
+    }
+
+    function setFormValues(){
+        $("#minutes").val(timeService.time.minutes);
+        $("#seconds").val(timeService.time.seconds);
+    }
+</script>
+</body>
+</html>
